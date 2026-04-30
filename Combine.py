@@ -69,6 +69,6 @@ version = re.search(r"^//\s*@version\s+(\d+(?:\.\d+)*)", js_content, flags=re.MU
 # === 10) Sauvegarder sous JVChat_PremiumM.js à la racine
 with open("JVChat_PremiumM.js", "w", encoding="utf-8") as f:
     f.write(js_content)
-with open(f"/Old_Merge/JVChat_PremiumM.v{version}.js", "w", encoding="utf-8") as f:
+with open(f"./Old_Merge/JVChat_PremiumM.v{version}.js", "w", encoding="utf-8") as f:
     f.write(js_content)
 
