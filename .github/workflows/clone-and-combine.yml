@@ -1,0 +1,47 @@
+name: Combine css depot externe pour gestionnaire script scrict (ios).
+#.github/workflows/clone-and-combine.yml
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo_url:
+        description: 'URL du dépôt à cloner (laisser vide pour défaut)'
+        required: false
+        default: 'https://github.com/rand0max/jvchat-fork'
+
+permissions:
+  contents: write
+
+jobs:
+  clone_transform_commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name:  Checkout du dépôt principal
+        uses: actions/checkout@v6
+
+      - name: Debug – Vérifier les fichiers présents
+        run: ls -la $GITHUB_WORKSPACE
+
+      - name: Supprimer l’ancien dossier s’il existe
+        run: rm -rf external_repo
+
+      - name: Cloner le dépôt distant dans `external_repo/`
+        run: git clone ${{ github.event.inputs.repo_url }}.git external_repo
+
+      - name: Supprimer `.git` pour éviter sous-module
+        run: rm -rf external_repo/.git
+
+      - name: Lancer le script Python Combine.py
+        id: combine
+        run: python3 Combine.py
+
+      - name:  Commit et push des changements
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add external_repo
+          git add JVChat_PremiumM*.js
+          git add Old_Merge/
+          git diff --cached --quiet || git commit -m "Combine css depot externe"
+          git push
