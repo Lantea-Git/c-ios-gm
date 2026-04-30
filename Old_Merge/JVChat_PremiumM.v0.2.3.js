@@ -9,8 +9,6 @@
 // @match        https://*.jeuxvideo.com/forums/42-*
 // @match        http://*.jeuxvideo.com/forums/1-*
 // @match        https://*.jeuxvideo.com/forums/1-*
-// @downloadURL  https://update.greasyfork.org/scripts/552957/JVChat%20Premium%20FORK%20by%20Rand0max.user.js
-// @updateURL    https://update.greasyfork.org/scripts/552957/JVChat%20Premium%20FORK%20by%20Rand0max.user.js
 // @run-at       document-end
 // ==/UserScript==
 
@@ -73,7 +71,6 @@ header.jv-header-menu,
 .option-previsu,
 .ads,
 .sondage-fofo,
-#forums-topic-survey,
 #dfp_pulse,
 #didomi-host,
 .sideDfp,
@@ -168,7 +165,7 @@ body,
 /* #forum-main-col has TWO .container__main children in the new structure:
    - the first wraps #listMessages > #jvchat-main (scrollable messages)
    - the second wraps #bloc-formulaire-forum (input form)
-   Make #forum-main-col itself a CSS Grid with rows \`auto 1fr auto\` so the
+   Make #forum-main-col itself a CSS Grid with rows auto 1fr auto so the
    messages container grows to fill, and the form stays pinned at the bottom. */
 #forum-main-col {
   display: grid !important;
@@ -228,6 +225,92 @@ body,
 
 .jvchat-hide {
   display: none !important;
+}
+
+.jvchat-external-block {
+  position: relative;
+}
+
+.jvchat-external-toggle {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  width: 1.8rem;
+  height: 1.8rem;
+  justify-content: center;
+  border: 1px solid var(--jv-border-color, rgba(127, 127, 127, 0.35));
+  border-radius: 0.25rem;
+  background: var(--jv-input-bg-color, var(--jv-bg-color, transparent));
+  color: inherit;
+  opacity: 0.85;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.jvchat-external-toggle__chevron {
+  display: inline-block;
+  font-size: 2rem;
+  line-height: 1;
+}
+.jvchat-external-toggle__chevron::before {
+  content: "\u25BE";
+  display: inline-block;
+  transition: transform 0.15s ease-in-out;
+}
+.jvchat-external-toggle.jvchat-external-toggle--collapsed .jvchat-external-toggle__chevron::before {
+  transform: rotate(-90deg);
+}
+
+.jvchat-external-toggle__title {
+  display: none;
+  color: inherit;
+  opacity: 0.75;
+}
+
+.jvchat-external-toggle:hover {
+  opacity: 1;
+}
+
+body.jvchat-hide-deboucled #deboucled-decensured-message-container > :not(.jvchat-external-toggle),
+body.jvchat-hide-risibank #risibank-container > :not(.jvchat-external-toggle),
+body.jvchat-hide-survey #forums-topic-survey > :not(.jvchat-external-toggle) {
+  display: none !important;
+}
+body.jvchat-hide-deboucled #deboucled-decensured-message-container,
+body.jvchat-hide-risibank #risibank-container,
+body.jvchat-hide-survey #forums-topic-survey {
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+body.jvchat-hide-deboucled #deboucled-decensured-message-container .jvchat-external-toggle,
+body.jvchat-hide-risibank #risibank-container .jvchat-external-toggle,
+body.jvchat-hide-survey #forums-topic-survey .jvchat-external-toggle {
+  position: static;
+  width: 100%;
+  height: auto;
+  padding: 0.25rem 0.5rem;
+  justify-content: flex-start;
+  border-radius: 0;
+  box-shadow: none;
+}
+body.jvchat-hide-deboucled #deboucled-decensured-message-container .jvchat-external-toggle__title,
+body.jvchat-hide-risibank #risibank-container .jvchat-external-toggle__title,
+body.jvchat-hide-survey #forums-topic-survey .jvchat-external-toggle__title {
+  display: inline-block;
 }
 
 .jvchat-hide-visibility {
@@ -768,19 +851,15 @@ hr.jvchat-ruler:first-of-type {
   margin-bottom: 0.2rem;
 }
 
-.jvchat-content .text-enrichi-forum blockquote.message__blockquote,
+.jvchat-content .text-enrichi-forum blockquote.blockquote-jv,
 .jvchat-content blockquote.message__blockquote {
   margin: 0.2rem 0;
   padding: 0rem 0.3rem 0 0.3rem;
   color: #8b8b8b;
 }
 
-.message__collapsedQuote::before {
-   position: relative;
-}
-
-.jvchat-content .text-enrichi-forum .message__collapsedQuote,
-.jvchat-content .message__collapsedQuote {
+.jvchat-content .text-enrichi-forum .nested-quote-toggle-box,
+.jvchat-content .nested-quote-toggle-box {
   position: relative !important;
 }
 
@@ -1169,17 +1248,17 @@ hr.jvchat-ruler:first-of-type {
   background: #484c52 !important;
 }
 
-.jvchat-night-mode .text-enrichi-forum blockquote.message__blockquote {
+.jvchat-night-mode .text-enrichi-forum blockquote.blockquote-jv {
   border-left-color: #484c52 !important;
 }
 
-.jvchat-night-mode .text-enrichi-forum .message__collapsedQuote::after {
+.jvchat-night-mode .text-enrichi-forum .nested-quote-toggle-box::after {
   background-color: #484c52 !important;
   border-color: #737373 !important;
   color: #737373 !important;
 }
 
-.jvchat-night-mode .text-enrichi-forum .message__collapsedQuote:hover::before {
+.jvchat-night-mode .text-enrichi-forum .nested-quote-toggle-box:hover::before {
   color: #cbcdce !important;
 }
 
@@ -1326,6 +1405,9 @@ function defaultConfig() {
         night_mode: false,
         load_images: false,
         hide_mosaic: false,
+        hide_deboucled: true,
+        hide_risibank: true,
+        hide_survey: true,
         turbo_alerted: false,
         sound: "data:audio/mp3;base64, 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KZ+4/J4hhPMbxk9uZlkvh6/jLtS6T9noZlleNzM1apGt+7CwkdfONPpLpNT0rivtF6d5JRejlihnmuTMIf3OWsl7KKKapZHQ3IBmnFlUchyHaOIzN+Syuo2SUVYPlNqCn+n4xG78SrR1lD/QTSyWlcKHJychjdSVSWMwDAM3EY7Rf/////4vzXlEEQJGHKsO7LsZ6U2J2PwPQf/////wNDUARKBH5g6tXeyKSKCcnRpY3DcYAAEAAAMEoLwyQhqjAOAaMLkNqt00SR7TGnEwMCcLkwGAN/0YLQF4kEeYBQBxgMgDf5zDxADC4wy5TXmbBm6JJimNECMEY0V/+ZUKbI8RFS75hwiwRgQhhQ3//mSGBgiSmIDAYQ8RaowYaYQy///4FAgIFCFcICDBAACE//uSxO0AK+Iu+xnsAAT7PuBXPaAAsrSBICGWxf///q8USLIIaMqLIIUF1n1hhHpwYQrd////69i6hehbyJiOCcatiVjSXVaU3Fpsebiy2x/////+jW3RSxAe2JliKcPPIim67osRh10V2u7ALDWcx1hv///////DiG7T48oOzeXsjTHhtmap3fdFMdYWZaysLddlhtaIrlpqFlMSp//////////3Hh1Qdf8HMPUvasytPttG5svXpBLO1LJlr//////7WYlRuzEotEYCfqZiTvX4k5UPRJynekxBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7ksQ5A8AAAaQcAAAgAAA0gAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo="
     };
@@ -1833,11 +1915,14 @@ function fixMessage(elem) {
         a.innerHTML = jvcare.innerHTML;
         jvcare.outerHTML = a.outerHTML;
     }
-
-    let togglableQuotes = Array.from(elem.querySelectorAll(".messageUser__msg.txt-msg > blockquote > blockquote"));
+    // New structure: blockquote.message__blockquote > blockquote.message__blockquote
+    let togglableQuotes = Array.from(elem.querySelectorAll("blockquote > blockquote"));
+    if (togglableQuotes.length === 0) {
+        togglableQuotes = Array.from(elem.querySelectorAll(".text-enrichi-forum > blockquote > blockquote"));
+    }
     for (let togglableQuote of togglableQuotes) {
-        let toggleButton = document.createElement("button");
-        toggleButton.classList.add("message__collapsedQuote");
+        let toggleButton = document.createElement("div");
+        toggleButton.classList.add("nested-quote-toggle-box");
         togglableQuote.insertBefore(toggleButton, togglableQuote.firstChild);
         // The click event is bound in the "dontScrollOnExpand()" function
     }
@@ -1898,6 +1983,9 @@ function improveImages(elem) {
     for (let image of imagesShack) {
         let src = image.src;
         let parent = image.parentNode;
+        if (!src || !parent || !parent.href) {
+            continue;
+        }
         let extension = parent.href.split(".").pop();
         let direct = src.replace(/(.*?)\/minis\/(.*)\.\w+/i, "$1/fichiers/$2." + extension);
         image.setAttribute("data-src-mini", src);
@@ -2010,6 +2098,27 @@ function getPanelHtml() {
                         </label>
                         <p>Cache automatiquement les mosaïques d'images NoelShack pour réduire le flooding.</p>
                     </div>
+                    <div class="jvchat-config-option jvchat-hide" id="jvchat-hide-deboucled">
+                        <label>
+                            <input id="jvchat-hide-deboucled-checkbox" type="checkbox">
+                            <span id="jvchat-hide-deboucled-span">Masquer le bloc Deboucled</span>
+                        </label>
+                        <p>Masque le bloc des messages filtrés ajouté par le userscript Deboucled / Décensured pour gagner de la place verticale.</p>
+                    </div>
+                    <div class="jvchat-config-option jvchat-hide" id="jvchat-hide-risibank">
+                        <label>
+                            <input id="jvchat-hide-risibank-checkbox" type="checkbox">
+                            <span id="jvchat-hide-risibank-span">Masquer le bloc RisiBank</span>
+                        </label>
+                        <p>Masque le panneau d'images ajouté par le userscript RisiBank pour gagner de la place verticale.</p>
+                    </div>
+                    <div class="jvchat-config-option jvchat-hide" id="jvchat-hide-survey">
+                        <label>
+                            <input id="jvchat-hide-survey-checkbox" type="checkbox">
+                            <span id="jvchat-hide-survey-span">Masquer le sondage</span>
+                        </label>
+                        <p>Masque le bloc sondage natif du forum pour gagner de la place verticale.</p>
+                    </div>
                     <div class="jvchat-config-option" id="jvchat-turbo-delay">
                         <label>
                             <span>Délai Turbo</span>
@@ -2103,11 +2212,9 @@ function clearPage(document) {
     }
 
     let toolbar = formContainer ? (formContainer.querySelector(".buttonsEditor, .jv-editor-toolbar")) : null;
-    /*
     if (toolbar) {
         toolbar.classList.add("jvchat-hide");
     }
-    */
 
     document.getElementById("jvchat-main").addEventListener("click", tryCatch(dontScrollOnExpand));
 
@@ -2134,6 +2241,26 @@ function clearPage(document) {
     if (configuration["hide_mosaic"]) {
         document.getElementById("jvchat-main").classList.add("jvchat-hide-mosaics");
     }
+
+    document.getElementById("jvchat-hide-deboucled-checkbox").checked = configuration["hide_deboucled"];
+    document.getElementById("jvchat-hide-deboucled-checkbox").addEventListener("change", tryCatch(toggleHideDeboucledOption));
+    if (configuration["hide_deboucled"]) {
+        document.body.classList.add("jvchat-hide-deboucled");
+    }
+
+    document.getElementById("jvchat-hide-risibank-checkbox").checked = configuration["hide_risibank"];
+    document.getElementById("jvchat-hide-risibank-checkbox").addEventListener("change", tryCatch(toggleHideRisibankOption));
+    if (configuration["hide_risibank"]) {
+        document.body.classList.add("jvchat-hide-risibank");
+    }
+
+    document.getElementById("jvchat-hide-survey-checkbox").checked = configuration["hide_survey"];
+    document.getElementById("jvchat-hide-survey-checkbox").addEventListener("change", tryCatch(toggleHideSurveyOption));
+    if (configuration["hide_survey"]) {
+        document.body.classList.add("jvchat-hide-survey");
+    }
+
+    watchExternalBlocks();
 
     if (configuration["hide_alerts"]) {
         document.getElementById("jvchat-alerts").classList.add("jvchat-hide-alerts");
@@ -2273,6 +2400,133 @@ function toggleHideMosaicOption(event) {
     if (isDown) {
         setScrollDown();
     }
+}
+
+function toggleHideDeboucledOption(event) {
+    let checked = document.getElementById("jvchat-hide-deboucled-checkbox").checked;
+    setExternalBlockHidden("deboucled", checked);
+}
+
+function toggleHideRisibankOption(event) {
+    let checked = document.getElementById("jvchat-hide-risibank-checkbox").checked;
+    setExternalBlockHidden("risibank", checked);
+}
+
+function toggleHideSurveyOption(event) {
+    let checked = document.getElementById("jvchat-hide-survey-checkbox").checked;
+    setExternalBlockHidden("survey", checked);
+}
+
+const externalBlocks = {
+    deboucled: {
+        configKey: "hide_deboucled",
+        blockId: "deboucled-decensured-message-container",
+        optionId: "jvchat-hide-deboucled",
+        checkboxId: "jvchat-hide-deboucled-checkbox",
+        bodyClass: "jvchat-hide-deboucled",
+        label: "Deboucled",
+    },
+    risibank: {
+        configKey: "hide_risibank",
+        blockId: "risibank-container",
+        optionId: "jvchat-hide-risibank",
+        checkboxId: "jvchat-hide-risibank-checkbox",
+        bodyClass: "jvchat-hide-risibank",
+        label: "RisiBank",
+    },
+    survey: {
+        configKey: "hide_survey",
+        blockId: "forums-topic-survey",
+        optionId: "jvchat-hide-survey",
+        checkboxId: "jvchat-hide-survey-checkbox",
+        bodyClass: "jvchat-hide-survey",
+        label: "Sondage",
+    },
+};
+
+function setExternalBlockHidden(key, hidden) {
+    let def = externalBlocks[key];
+    if (!def) return;
+    configuration[def.configKey] = hidden;
+    saveConfig();
+    let isDown = isScrollDown();
+    document.body.classList.toggle(def.bodyClass, hidden);
+    let checkbox = document.getElementById(def.checkboxId);
+    if (checkbox) {
+        checkbox.checked = hidden;
+    }
+    let block = document.getElementById(def.blockId);
+    if (block) {
+        let btn = block.querySelector(":scope > .jvchat-external-toggle");
+        if (btn) {
+            btn.setAttribute("title", hidden ? `Afficher ${def.label}` : `Masquer ${def.label}`);
+            btn.setAttribute("aria-pressed", hidden ? "true" : "false");
+            btn.classList.toggle("jvchat-external-toggle--collapsed", hidden);
+        }
+    }
+    if (isDown) {
+        setScrollDown();
+    }
+}
+
+function injectExternalBlockToggle(key) {
+    let def = externalBlocks[key];
+    let block = document.getElementById(def.blockId);
+    if (!block) return;
+    if (block.querySelector(":scope > .jvchat-external-toggle")) return;
+
+    let hidden = !!configuration[def.configKey];
+    let btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "jvchat-external-toggle" + (hidden ? " jvchat-external-toggle--collapsed" : "");
+    btn.setAttribute("title", hidden ? `Afficher ${def.label}` : `Masquer ${def.label}`);
+    btn.setAttribute("aria-pressed", hidden ? "true" : "false");
+    btn.setAttribute("aria-label", `Masquer / Afficher ${def.label}`);
+
+    let chevron = document.createElement("span");
+    chevron.className = "jvchat-external-toggle__chevron";
+    btn.appendChild(chevron);
+
+    let title = document.createElement("span");
+    title.className = "jvchat-external-toggle__title";
+    title.textContent = def.label;
+    btn.appendChild(title);
+
+    btn.addEventListener("click", tryCatch(function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        setExternalBlockHidden(key, !configuration[def.configKey]);
+    }));
+
+    block.insertBefore(btn, block.firstChild);
+    block.classList.add("jvchat-external-block");
+}
+
+function watchExternalBlocks() {
+    function check() {
+        let allFound = true;
+        for (let key in externalBlocks) {
+            let def = externalBlocks[key];
+            if (document.getElementById(def.blockId)) {
+                let opt = document.getElementById(def.optionId);
+                if (opt) {
+                    opt.classList.remove("jvchat-hide");
+                }
+                injectExternalBlockToggle(key);
+            } else {
+                allFound = false;
+            }
+        }
+        return allFound;
+    }
+
+    check();
+    let observer = new MutationObserver(function () {
+        check();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    // Stop observing after a while to avoid permanent overhead.
+    setTimeout(function () { observer.disconnect(); }, 30000);
 }
 
 function toggleLoadImagesOption(event) {
@@ -2422,21 +2676,7 @@ async function postJvcMessage() {
         }
     }
 
-    let fs_custom_input = Array.from(freshForm.elements).find(e => /^fs_[a-f0-9]{40}$/i.test(e.name));
-    if (fs_custom_input && !formData.has(fs_custom_input.name)) {
-        formData.set(fs_custom_input.name, fs_custom_input.value);
-    }
-    if (!formData.has("ajax_hash")) {
-        let ajax_hash = freshForm.querySelector('input[name="ajax_hash"]')?.value || freshHash;
-        formData.set("ajax_hash", ajax_hash);
-    }
-
-    const boundary = "----geckoformboundary" + Math.random().toString(16).slice(2);
-    let body = "";
-    for (let [key, value] of formData.entries()) {
-        body += `--${boundary}\r\nContent-Disposition: form-data; name="${key}"\r\n\r\n${value}\r\n`;
-    }
-    body += `--${boundary}--\r\n`;
+    formData.set("ajax_hash", forumPayload.ajaxToken);
 
     let timeout = turboActivated ? 5000 : 20000;
     postingMessage = true;
@@ -2450,12 +2690,11 @@ async function postJvcMessage() {
                     "Accept": "application/json",
                     "Accept-Language": "fr",
                     "x-requested-with": "XMLHttpRequest",
-                    "Content-Type": `multipart/form-data; boundary=${boundary}`,
                     "Pragma": "no-cache",
                     "Cache-Control": "no-cache"
                 },
                 referrer: document.URL,
-                body: body,
+                body: formData,
                 mode: "cors"
             }),
             new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), timeout))
@@ -2782,7 +3021,6 @@ function getMessages(document) {
     let blocMessages = document.querySelectorAll(".messageUser.js-hybrid-component, .bloc-message-forum");
     let messages = [];
     for (let bloc of blocMessages) {
-        if (bloc.children.length === 0) continue; //Bloc blacklist No DOM Fellback crash
         messages.push(parseMessage(bloc));
     }
     return messages;
@@ -2796,7 +3034,6 @@ function findDeletedMessages(res, requestTimestamp) {
     let newDates = [];
 
     for (let bloc of blocMessages) {
-        if (bloc.children.length === 0) continue; //Bloc blacklist No DOM Fellback crash
         let id;
         if (bloc.classList.contains("messageUser")) {
             id = parseInt(bloc.id.replace("message-", ""));
@@ -2965,148 +3202,105 @@ function parseDate(string) {
     return new Date(parseInt(year), monthIndex, parseInt(day), parseInt(hour), parseInt(minute), parseInt(second));
 }
 
-function reverseMessage(node, isInit, isUl) {
-    let quote = "";
-    let prevIsP = false;
-    let startsWithSpoil = false;
+function buildNestedQuoteLines(node, depth) {
+    // Sérialise un noeud DOM en lignes préfixées par "> " selon la profondeur,
+    // en gérant récursivement les <blockquote> imbriqués.
+    //
+    // Subtilité importante : JVC limite la profondeur d'imbrication réelle des
+    // <blockquote> dans le HTML rendu. Au-delà, il aplatit les citations plus
+    // profondes en texte brut avec des marqueurs "> " littéraux dans le texte.
+    // Cette fonction traite ces marqueurs comme des niveaux additionnels.
+    const prefix = "> ".repeat(depth);
+    const result = [];
+    let textBuffer = "";
+    let lastWasBlockquote = false;
 
-    for (let child of node.childNodes) {
-        let name = child.nodeName;
-
-        switch (name) {
-            case "P": {
-                quote += reverseMessage(child) + "\n\n";
-                break;
+    const flushText = () => {
+        let text = textBuffer.replace(/^\n+|\n+$/g, "");
+        textBuffer = "";
+        if (text.length === 0) return;
+        if (lastWasBlockquote) {
+            // Ligne vide quotée pour séparer la blockquote imbriquée du texte suivant
+            result.push(prefix.replace(/\s+$/, ""));
+        }
+        // Heuristique : si le texte ne contient aucun saut de ligne mais
+        // plusieurs marqueurs "> " (citations aplaties par JVC sans <br>),
+        // on découpe sur ces marqueurs pour reconstituer les lignes.
+        if (!text.includes("\n") && /\s>+\s/.test(text)) {
+            text = text.replace(/\s+(>+\s)/g, "\n$1");
+        }
+        for (let line of text.split("\n")) {
+            // Compte les marqueurs "> " déjà présents dans la ligne (citations
+            // aplaties qui doivent ajouter à la profondeur courante).
+            let extra = 0;
+            const m = line.match(/^((?:>\s*)+)/);
+            if (m) {
+                extra = (m[1].match(/>/g) || []).length;
+                line = line.slice(m[0].length);
             }
-            case "STRONG": {
-                quote += "'''" + reverseMessage(child) + "'''";
-                break;
-            }
-            case "U": {
-                quote += "<u>" + reverseMessage(child) + "</u>";
-                break;
-            }
-            case "S": {
-                quote += "<s>" + reverseMessage(child) + "</s>";
-                break;
-            }
-            case "EM": {
-                quote += "''" + reverseMessage(child) + "''";
-                break;
-            }
-            case "BR": {
-                quote += "\n";
-                break;
-            }
-            case "UL": {
-                quote += reverseMessage(child, false, true) + "\n\n";
-                break;
-            }
-            case "OL": {
-                quote += reverseMessage(child, false, false) + "\n\n";
-                break;
-            }
-            case "LI": {
-                if (isUl === true) {
-                    quote += "* " + reverseMessage(child) + "\n";
-                } else {
-                    quote += "# " + reverseMessage(child) + "\n";
-                }
-                break;
-            }
-            case "DIV": {
-                let classList = child.classList;
-                if (classList.contains("message__spoil")) {
-                    if (quote === "") {
-                        startsWithSpoil = true;
-                    }
-                    quote += "<spoil>" + reverseMessage(child) + "</spoil>\n\n"
-                } else if (classList.contains("message__spoilContent")) {
-                    quote += reverseMessage(child);
-                }
-                break;
-            }
-            case "SPAN": {
-                let classList = child.classList;
-                if (classList.contains("message__spoil")) {
-                    quote += "<spoil>" + reverseMessage(child) + "</spoil>";
-                } else if (classList.contains("message__spoilContent")) {
-                    quote += reverseMessage(child);
-                }
-                break;
-            }
-            case "LABEL": {
-                break;
-            }
-            case "INPUT": {
-                break;
-            }
-            case "IMG": {
-                quote += child.alt;
-                break;
-            }
-            case "A": {
-                if (child.href) {
-                    quote += child.href;
-                } else {
-                    quote += reverseMessage(child);
-                }
-                break;
-            }
-            case "PRE": {
-                quote += reverseMessage(child) + "\n\n";
-                break;
-            }
-            case "CODE": {
-                quote += "<code>" + child.textContent + "</code>";
-                break;
-            }
-            case "BLOCKQUOTE": {
-                if (prevIsP) {
-                    quote = quote.trimEnd() + "\n" + reverseMessage(child).replace(/^/gm, '> ') + "\n\n";
-                } else {
-                    quote += reverseMessage(child).replace(/^/gm, '> ') + "\n\n";
-                }
-
-                break;
-            }
-            case "#text": {
-                // The "isInit" check is to prevent the empty text surroudning message
-                // However, it may happen that the root node contains valid text child, so it need to be added somehow
-                // For some reason, an "new line" may be missing in this case, so just add it
-                if (!isInit || child.textContent.trim() !== "") {
-                    quote += child.textContent;
-                    if (isInit && !quote.endsWith("\n")) {
-                        quote += "\n";
-                    }
-                }
-                break;
-            }
-            default: {
-                break;
+            const linePrefix = "> ".repeat(depth + extra);
+            if (line.length === 0) {
+                result.push(linePrefix.replace(/\s+$/, ""));
+            } else {
+                result.push(linePrefix + line);
             }
         }
+        lastWasBlockquote = false;
+    };
 
-        if (name == "P") {
-            prevIsP = true;
-        } else {
-            prevIsP = false;
+    const appendText = (str) => {
+        if (str) textBuffer += str;
+    };
+
+    for (const child of node.childNodes) {
+        if (child.nodeType === Node.TEXT_NODE) {
+            appendText(child.nodeValue);
+            continue;
         }
+        if (child.nodeType !== Node.ELEMENT_NODE) continue;
+        if (child.classList && child.classList.contains("nested-quote-toggle-box")) {
+            continue;
+        }
+        if (child.tagName === "BLOCKQUOTE") {
+            flushText();
+            const nested = buildNestedQuoteLines(child, depth + 1);
+            result.push(...nested);
+            lastWasBlockquote = true;
+            continue;
+        }
+        if (child.tagName === "BR") {
+            appendText("\n");
+            continue;
+        }
+        // Pour les autres éléments (p, div, span, a, img, sticker...), on
+        // descend récursivement pour collecter leur texte tout en gérant
+        // d'éventuels <blockquote> ou <br> internes.
+        appendText(serializeInlineNode(child));
     }
+    flushText();
+    return result;
+}
 
-    quote = quote.replace(/(\n){3,}/g, '\n\n');
-
-    if (startsWithSpoil && isInit) {
-        quote = "\n" + quote.trimEnd();
-    } else {
-        quote = quote.trim();
+function serializeInlineNode(node) {
+    // Sérialise un noeud "inline" en texte, en convertissant <br> en "\n" et
+    // en gérant les images sticker JVC (alt) et les liens.
+    if (node.nodeType === Node.TEXT_NODE) return node.nodeValue || "";
+    if (node.nodeType !== Node.ELEMENT_NODE) return "";
+    if (node.tagName === "BR") return "\n";
+    if (node.tagName === "IMG") {
+        // Stickers/smileys : on prend l'alt (ex: ":noel:") ou l'URL pour les
+        // stickers noelshack.
+        const alt = node.getAttribute("alt") || "";
+        return alt;
     }
-
-    if (isInit) {
-        quote = quote.replace(/^/gm, '> ');
+    let out = "";
+    for (const c of node.childNodes) out += serializeInlineNode(c);
+    // Pour les éléments de type bloc (p, div), on ajoute un saut de ligne final
+    // s'il n'y en a pas déjà, pour préserver la structure.
+    if ((node.tagName === "P" || node.tagName === "DIV") && out.length > 0 && !out.endsWith("\n")) {
+        out += "\n";
     }
-
-    return quote;
+    return out;
 }
 
 function buildQuoteEvent(messageId) {
@@ -3114,15 +3308,27 @@ function buildQuoteEvent(messageId) {
     const quoteButton = message.querySelector('.jvchat-quote');
     const author = message.querySelector('.jvchat-author').textContent.trim();
     const date = message.querySelector('.jvchat-date').getAttribute('to-quote');
-    quoteButton.addEventListener('click', () => {
-        let header = `> Le ${date} ${author} a écrit :\n`;
-        let quoted = reverseMessage(message.querySelector(".txt-msg"), true);
-        let content = header + quoted + '\n\n';
-
+    quoteButton.addEventListener('click', async () => {
         let textarea = getTextArea();
+        if (!textarea) {
+            displayError("Impossible de trouver l'éditeur de message");
+            return;
+        }
         if (isReduced) {
             toggleTextarea();
         }
+
+        // Citation : on reconstruit le texte à partir du DOM JVChat en
+        // préservant l'imbrication des blockquotes (chaque niveau ajoute
+        // un "> ") et en récupérant les citations aplaties par JVC au-delà
+        // de sa profondeur d'imbrication maximale.
+        const txtMsg = message.querySelector('.txt-msg');
+        const quoteLines = txtMsg ? buildNestedQuoteLines(txtMsg, 1) : [];
+        let content = `\n> Le ${date} '''${author}''' a écrit :\n`;
+        content += quoteLines.join('\n');
+        content = content.replace(/^[\r\n]+|[\r\n]+$/g, '');
+        content += '\n\n';
+
         insertAtCursor(textarea, content);
         textarea.focus();
     });
@@ -4096,16 +4302,18 @@ function dontScrollOnExpand(event) {
 
     let classes = target.classList;
 
-    if (classes.contains("message__collapsedQuote")) {
+    if (classes.contains("nested-quote-toggle-box")) {
         let isDown = isScrollDown();
-        let blockQuote = target.closest(".message__blockquote");
-        blockQuote.classList.toggle("message__blockquote--visible");
+        let blockQuote = target.closest(".blockquote-jv");
+        let visible = blockQuote.getAttribute("data-visible");
+        let value = visible === "1" ? "" : "1";
+        blockQuote.setAttribute('data-visible', value);
         if (isDown) {
             setScrollDown();
         }
     } else if (classes.contains("txt-spoil") || classes.contains("aff-spoil") || classes.contains("masq-spoil")) {
         event.preventDefault();
-        let check = target.closest(".message__spoil").getElementsByClassName("open-spoil")[0];
+        let check = target.closest(".bloc-spoil-jv").getElementsByClassName("open-spoil")[0];
         let isDown = isScrollDown();
         check.checked = !check.checked;
         if (isDown) {

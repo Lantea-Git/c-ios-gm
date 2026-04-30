@@ -165,7 +165,7 @@ body,
 /* #forum-main-col has TWO .container__main children in the new structure:
    - the first wraps #listMessages > #jvchat-main (scrollable messages)
    - the second wraps #bloc-formulaire-forum (input form)
-   Make #forum-main-col itself a CSS Grid with rows \`auto 1fr auto\` so the
+   Make #forum-main-col itself a CSS Grid with rows auto 1fr auto so the
    messages container grows to fill, and the form stays pinned at the bottom. */
 #forum-main-col {
   display: grid !important;
@@ -2676,21 +2676,7 @@ async function postJvcMessage() {
         }
     }
 
-    let fs_custom_input = Array.from(freshForm.elements).find(e => /^fs_[a-f0-9]{40}$/i.test(e.name));
-    if (fs_custom_input && !formData.has(fs_custom_input.name)) {
-        formData.set(fs_custom_input.name, fs_custom_input.value);
-    }
-    if (!formData.has("ajax_hash")) {
-        let ajax_hash = freshForm.querySelector('input[name="ajax_hash"]')?.value || freshHash;
-        formData.set("ajax_hash", ajax_hash);
-    }
-
-    const boundary = "----geckoformboundary" + Math.random().toString(16).slice(2);
-    let body = "";
-    for (let [key, value] of formData.entries()) {
-        body += `--${boundary}\r\nContent-Disposition: form-data; name="${key}"\r\n\r\n${value}\r\n`;
-    }
-    body += `--${boundary}--\r\n`;
+    formData.set("ajax_hash", forumPayload.ajaxToken);
 
     let timeout = turboActivated ? 5000 : 20000;
     postingMessage = true;
@@ -2704,12 +2690,11 @@ async function postJvcMessage() {
                     "Accept": "application/json",
                     "Accept-Language": "fr",
                     "x-requested-with": "XMLHttpRequest",
-                    "Content-Type": `multipart/form-data; boundary=${boundary}`,
                     "Pragma": "no-cache",
                     "Cache-Control": "no-cache"
                 },
                 referrer: document.URL,
-                body: body,
+                body: formData,
                 mode: "cors"
             }),
             new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), timeout))
