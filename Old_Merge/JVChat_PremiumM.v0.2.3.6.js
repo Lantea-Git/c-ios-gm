@@ -4,7 +4,7 @@
 // @author       Blaff & Rand0max
 // @namespace    JVChatPremium
 // @license      MIT
-// @version      0.2.3
+// @version      0.2.3.6
 // @match        http://*.jeuxvideo.com/forums/42-*
 // @match        https://*.jeuxvideo.com/forums/42-*
 // @match        http://*.jeuxvideo.com/forums/1-*
@@ -1860,6 +1860,7 @@ function detectMosaic(elem) {
     let regex1 = /^.+\/(?:[0-9]+-)+[0-9]{1,2}-([a-z0-9]+)\.\w+$/i;
     let regex2 = /^.+\/(?:[0-9]+-)+row-[0-9]+-col-[0-9](?:-[0-9]+)?\.\w+$/i;
     for (let image of imagesShack) {
+        if (!image.src) continue; //Fell Back Span
         let match1 = image.src.match(regex1);
         if (match1) {
             let [_, identifier] = match1;
@@ -1896,6 +1897,16 @@ function detectMosaic(elem) {
 function improveImages(elem) {
     let imagesShack = elem.querySelectorAll(".img-shack, .message__urlImg");
     for (let image of imagesShack) {
+        if (!image.src) { //CSS Image Span => transform to image or cancel
+            const largeImg = image.dataset.srcBackground;
+            if (!largeImg) continue;
+            const tagImg = document.createElement('img');
+            tagImg.src = largeImg;
+            tagImg.className = image.className;
+            tagImg.style.paddingBottom = '0';
+            image.replaceWith(tagImg);
+            image = tagImg;
+        }
         let src = image.src;
         let parent = image.parentNode;
         let extension = parent.href.split(".").pop();
@@ -3431,7 +3442,7 @@ function hideCloudfareInfo() {
     }
     const observer = new MutationObserver(() => {
         let cfInfo = document.querySelector(".js-captcha-logo");
-        if (cfInfo) hideElement(cfInfo.parentElement);
+        if (cfInfo) hideElement(cfInfo.parentElement.parentElement);
     });
     observer.observe(document.body, {
         childList: true,

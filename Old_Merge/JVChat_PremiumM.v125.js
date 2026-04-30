@@ -4,13 +4,12 @@
 // @author       Blaff & Rand0max
 // @namespace    JVChatPremium
 // @license      MIT
-// @version      0.2.3
+// @version      0.1.125
+// @grant        none
 // @match        http://*.jeuxvideo.com/forums/42-*
 // @match        https://*.jeuxvideo.com/forums/42-*
 // @match        http://*.jeuxvideo.com/forums/1-*
 // @match        https://*.jeuxvideo.com/forums/1-*
-// @downloadURL  https://update.greasyfork.org/scripts/552957/JVChat%20Premium%20FORK%20by%20Rand0max.user.js
-// @updateURL    https://update.greasyfork.org/scripts/552957/JVChat%20Premium%20FORK%20by%20Rand0max.user.js
 // @run-at       document-end
 // ==/UserScript==
 
@@ -27,9 +26,6 @@ via le data-attribut "jvchat-id".
 
 Il existe aussi l'évènement "jvchat:activation" qui est émis une seule fois : à l'initialisation
 lorsque le topic pass en mode "JVChat" après appui sur le bouton.
-
-L'évènement "jvchat:activated" qui est émis une seule fois : après l'initialisation
-lorsque les messages sont chargés.
 
 Il existe enfin l'évènement "jvchat:postmessage". Celui-ci est émis chaque fois qu'un message est posté par l'utilisateur actuel.
 Il contient l'identifiant du message, le contenu du message, et l'auteur du message.
@@ -73,7 +69,6 @@ header.jv-header-menu,
 .option-previsu,
 .ads,
 .sondage-fofo,
-#forums-topic-survey,
 #dfp_pulse,
 #didomi-host,
 .sideDfp,
@@ -98,114 +93,8 @@ header.jv-header-menu,
 .layout__contentAside,
 .layout__footer,
 .layout__contentTop,
-.header,
-.messageUser,
-.messageUser__anchor,
-.container__pagination,
-.container__navTop,
-.container__navBottom,
-.titleMessagesUsers,
-.sidebarPanel,
-.container__sidebar,
-#js-list-message-tools-actions,
-.buttonsNavbar__sticky,
-.js-list-message-main-toolbar,
-.sideCardForum,
-.js-side-module-forum-info,
-.js-side-module-forum-favorite {
+.header {
   display: none !important;
-}
-
-/* Ensure right sidebar and ads are hidden */
-#page-messages-forum > .layout__contentAside,
-.layout__row.layout__contentAside,
-#forum-main-col ins[data-ad-position],
-#forum-main-col .nosticky,
-.container__postTitle {
-  display: none !important;
-}
-
-/* Override JVC grid layout with flex so JVChat panel + messages align horizontally */
-#page-messages-forum {
-  display: flex !important;
-  margin: 0;
-  padding: 0;
-}
-#page-messages-forum > .layout__contentMain {
-  display: flex !important;
-  padding: 0 !important;
-  height: 100%;
-  max-width: unset !important;
-  width: 100% !important;
-  margin: 0 !important;
-}
-
-/* Flex column so #jvchat-main fills #forum-main-col inside .container__main.
-   NOTE: the real layout grid is applied on #forum-main-col itself (see below)
-   because there are TWO .container__main siblings (messages + form). */
-#forum-main-col > .container__main {
-  min-width: 0;
-}
-#forum-main-col > .container__main > #listMessages {
-  display: block;
-  min-height: 0;
-}
-
-/* Force the full outer layout chain to viewport height with no scroll so only
-   #jvchat-main scrolls internally and the input stays pinned at the bottom. */
-html,
-body,
-.layout,
-.layout-main,
-.layout-content,
-.layout__row,
-.layout__contentMain {
-  height: 100% !important;
-  max-height: 100vh !important;
-  overflow: hidden !important;
-}
-
-/* #forum-main-col has TWO .container__main children in the new structure:
-   - the first wraps #listMessages > #jvchat-main (scrollable messages)
-   - the second wraps #bloc-formulaire-forum (input form)
-   Make #forum-main-col itself a CSS Grid with rows \`auto 1fr auto\` so the
-   messages container grows to fill, and the form stays pinned at the bottom. */
-#forum-main-col {
-  display: grid !important;
-  grid-template-rows: auto 1fr auto !important;
-  grid-template-columns: 1fr !important;
-  overflow: hidden !important;
-  max-height: 100vh !important;
-  height: 100% !important;
-}
-/* First .container__main: messages (grows, scrolls internally) */
-#forum-main-col > .container__main:has(#listMessages) {
-  grid-row: 2 !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
-  display: block !important;
-}
-#forum-main-col > .container__main:has(#listMessages) > #listMessages {
-  height: 100% !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
-}
-#forum-main-col > .container__main:has(#listMessages) #jvchat-main {
-  height: 100% !important;
-  max-height: 100% !important;
-  overflow-y: auto !important;
-  min-height: 0 !important;
-}
-/* Second .container__main: form (natural height, pinned at bottom) */
-#forum-main-col > .container__main:has(#bloc-formulaire-forum) {
-  grid-row: 3 !important;
-  display: block !important;
-  visibility: visible !important;
-}
-/* Force everything else inside #forum-main-col (ads, stray divs) to row 1
-   so they're either hidden or collapse to 0. */
-#forum-main-col > *:not(.container__main) {
-  grid-row: 1 !important;
 }
 
 @font-face {
@@ -218,10 +107,7 @@ body,
 #jvchat-main,
 #page-messages-forum,
 #forum-main-col,
-#forum-main-col > .conteneur-messages-pagi,
-#forum-main-col > #listMessages,
-#forum-main-col > .container__main,
-#forum-main-col > .container__main > #listMessages {
+#forum-main-col > .conteneur-messages-pagi {
   height: 100%;
   width: 100%;
 }
@@ -232,6 +118,10 @@ body,
 
 .jvchat-hide-visibility {
   visibility: hidden;
+}
+
+body {
+  overflow-y: unset;
 }
 
 .messageEditor__topInfo {
@@ -360,17 +250,21 @@ body,
 #page-messages-forum {
   margin: 0;
   padding: 0;
-  display: flex !important;
+  display: block;
   line-height: 1.42857;
   font-size: 0.875rem;
 }
 
 #page-messages-forum > .layout__contentMain {
-  display: flex !important;
+  display: flex;
   padding: 0 !important;
   height: 100%;
-  max-width: unset !important;
-  width: 100% !important;
+  max-width: unset;
+}
+
+#page-messages-forum {
+  margin: 0;
+  display: flex;
 }
 
 label {
@@ -393,17 +287,9 @@ label {
   flex-grow: 0;
 }
 
-#forum-main-col > .conteneur-messages-pagi,
-#forum-main-col > #listMessages,
-#forum-main-col > .container__main > #listMessages {
+#forum-main-col > .conteneur-messages-pagi {
   display: flex;
   flex-direction: column;
-}
-
-#forum-main-col > .container__main {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
 }
 
 #page-messages-forum > .container-content {
@@ -418,8 +304,7 @@ label {
   margin: 0;
 }
 
-#message_topic,
-#message_reponse {
+#message_topic {
   resize: none;
   min-width: unset;
   max-height: 8rem;
@@ -435,8 +320,7 @@ label {
   width: 100%;
 }
 
-#forums-post-message-editor > form:not([class]),
-#forums-post-message-editor > form.messageEditForm {
+#forums-post-message-editor > form:not([class]) {
   display: flex;
   align-items: center;
 }
@@ -458,8 +342,7 @@ label {
   min-height: 3.5rem;
 }
 
-.jvchat-reduced #message_topic,
-.jvchat-reduced #message_reponse {
+.jvchat-reduced #message_topic {
   padding: 0.3rem;
   height: 1.7rem;
   max-height: 6.5rem;
@@ -613,7 +496,7 @@ label {
 }
 
 .jvchat-message-deleted:after {
-  content: "Message supprim\u{0000e9}";
+  content: "Message supprimé";
   position: absolute;
   top: 40%;
   left: 50%;
@@ -758,29 +641,21 @@ hr.jvchat-ruler:first-of-type {
   line-height: 1.1rem;
 }
 
-.jvchat-content > .txt-msg > p:last-of-type,
-.jvchat-content > .messageUser__msg > p:last-of-type {
+.jvchat-content > .txt-msg > p:last-of-type {
   margin-bottom: 0;
 }
 
-.jvchat-content > .txt-msg p,
-.jvchat-content > .messageUser__msg p {
+.jvchat-content > .txt-msg p {
   margin-bottom: 0.2rem;
 }
 
-.jvchat-content .text-enrichi-forum blockquote.message__blockquote,
-.jvchat-content blockquote.message__blockquote {
+.jvchat-content .text-enrichi-forum blockquote.blockquote-jv {
   margin: 0.2rem 0;
   padding: 0rem 0.3rem 0 0.3rem;
   color: #8b8b8b;
 }
 
-.message__collapsedQuote::before {
-   position: relative;
-}
-
-.jvchat-content .text-enrichi-forum .message__collapsedQuote,
-.jvchat-content .message__collapsedQuote {
+.jvchat-content .text-enrichi-forum .nested-quote-toggle-box {
   position: relative !important;
 }
 
@@ -812,8 +687,7 @@ hr.jvchat-ruler:first-of-type {
   padding-top: 100%;
 }
 
-.jvchat-content .img-shack,
-.jvchat-content .message__urlImg {
+.jvchat-content .img-shack {
   height: 39px;
   width: 52px;
   display: inline-block;
@@ -823,8 +697,7 @@ hr.jvchat-ruler:first-of-type {
   object-fit: contain;
 }
 
-.jvchat-content .img-stickers,
-.jvchat-content .message__urlImgSticker {
+.jvchat-content .img-stickers {
   max-height: 39px;
   min-height: 39px;
   width: auto;
@@ -1095,7 +968,7 @@ hr.jvchat-ruler:first-of-type {
 }
 
 #jvchat-main.jvchat-hide-mosaics .jvchat-mosaic-root::before {
-  content: "Mosa\u{0000ef}que Cach\u{0000e9}e \u{0000af}\\\\_(\u{0030c4})_/\u{0000af}";
+  content: "Mosaïque Cachée ¯\\\\_(ツ)_/¯";
   color: black;
   text-align: center;
   font-size: 10px;
@@ -1169,17 +1042,17 @@ hr.jvchat-ruler:first-of-type {
   background: #484c52 !important;
 }
 
-.jvchat-night-mode .text-enrichi-forum blockquote.message__blockquote {
+.jvchat-night-mode .text-enrichi-forum blockquote.blockquote-jv {
   border-left-color: #484c52 !important;
 }
 
-.jvchat-night-mode .text-enrichi-forum .message__collapsedQuote::after {
+.jvchat-night-mode .text-enrichi-forum .nested-quote-toggle-box::after {
   background-color: #484c52 !important;
   border-color: #737373 !important;
   color: #737373 !important;
 }
 
-.jvchat-night-mode .text-enrichi-forum .message__collapsedQuote:hover::before {
+.jvchat-night-mode .text-enrichi-forum .nested-quote-toggle-box:hover::before {
   color: #cbcdce !important;
 }
 
@@ -1363,29 +1236,18 @@ function getForm(doc) {
 
 function getHash(doc) {
     let hash = doc.querySelector("#ajax_hash_liste_messages")
-    if (hash) {
-        return hash.getAttribute("value");
+    if (!hash) {
+        return undefined;
     }
-    // Fallback: extract from payload
-    let payload = getPayload(doc);
-    if (payload && payload.ajaxToken) {
-        return payload.ajaxToken;
-    }
-    return undefined;
+    return hash.getAttribute("value");
 }
 
 function getDeletionHash(doc) {
     let hash = doc.querySelector("#ajax_hash_moderation_forum")
-    if (hash) {
-        return hash.getAttribute("value");
+    if (!hash) {
+        return undefined;
     }
-    // Fallback: extract from payload
-    let payload = getPayload(doc);
-    if (payload && payload.topicActions && payload.topicActions.deleteMessageUrl) {
-        let match = payload.topicActions.deleteMessageUrl.match(/ajax_hash=([a-f0-9]+)/i);
-        if (match) return match[1];
-    }
-    return undefined;
+    return hash.getAttribute("value");
 }
 
 function getJvcHash(type = "liste_messages") {
@@ -1396,14 +1258,7 @@ function getJvcHash(type = "liste_messages") {
         return freshDeletionHash;
     }
     const hashElement = document.querySelector(`#ajax_hash_${type}`);
-    if (hashElement) return hashElement.value;
-    // Fallback: extract from payload
-    if (type === "liste_messages") {
-        return getHash(document);
-    } else if (type === "moderation_forum") {
-        return getDeletionHash(document);
-    }
-    return undefined;
+    return hashElement ? hashElement.value : undefined;
 }
 
 function manageTextareaSimpleHeight() {
@@ -1424,21 +1279,12 @@ function manageTextareaSimpleHeight() {
 }
 
 function getTopicLocked(elem) {
-    // Old structure
     let lock = elem.getElementsByClassName("message-lock-topic")[0];
-    if (lock !== undefined) {
-        let reason = lock.getElementsByTagName("span")[0].textContent.trim();
-        return `Le topic a été verrouillé pour la raison suivante : "${reason}"`;
+    if (lock === undefined) {
+        return lock;
     }
-    // New structure: check payload
-    try {
-        let payload = getForumPayload();
-        if (payload && payload.forum && payload.forum.isForumReadOnly) {
-            let reason = payload.forum.lockReason || "raison inconnue";
-            return `Le topic a été verrouillé pour la raison suivante : "${reason}"`;
-        }
-    } catch { /* ignore */ }
-    return undefined;
+    let reason = lock.getElementsByTagName("span")[0].textContent.trim();
+    return `Le topic a été verrouillé pour la raison suivante : "${reason}"`;
 }
 
 function getTopicError(elem) {
@@ -1475,59 +1321,34 @@ function autoHideTurnstileErrorMessages() {
 }
 
 function parseSondage(elem) {
-    // Old structure
     let blocSondage = elem.getElementsByClassName("bloc-sondage")[0];
-    if (blocSondage) {
-        let intitule = blocSondage.getElementsByClassName("intitule-sondage")[0].textContent;
-        let answered = !!(blocSondage.getElementsByClassName("result-pourcent")[0]);
+    if (!blocSondage) {
+        return null;
+    }
+    let intitule = blocSondage.getElementsByClassName("intitule-sondage")[0].textContent;
+    let answered = !!(blocSondage.getElementsByClassName("result-pourcent")[0]);
 
-        let choix = blocSondage.getElementsByClassName("tab-choix")[0].getElementsByTagName("tr");
-        let results = [];
+    let choix = blocSondage.getElementsByClassName("tab-choix")[0].getElementsByTagName("tr");
+    let results = [];
 
-        if (answered) {
-            for (let ch of choix) {
-                let pourcent = parseInt(ch.getElementsByClassName("pourcent")[0].innerHTML.trim().split(" ")[0]);
-                let response = ch.getElementsByClassName("reponse")[0].textContent.trim();
-                results.push({ response: response, pourcent: pourcent });
-            }
-        } else {
-            for (let ch of choix) {
-                let btnResponse = ch.getElementsByClassName("btn-sondage-reponse")[0];
-                let response = btnResponse.textContent.trim();
-                let sondageId = btnResponse.getAttribute("data-id-sondage");
-                let responseId = btnResponse.getAttribute("data-id-reponse");
-                results.push({ response: response, sondageId: sondageId, responseId: responseId });
-            }
+    if (answered) {
+        for (let ch of choix) {
+            let pourcent = parseInt(ch.getElementsByClassName("pourcent")[0].innerHTML.trim().split(" ")[0]);
+            let response = ch.getElementsByClassName("reponse")[0].textContent.trim();
+            results.push({ response: response, pourcent: pourcent });
         }
-
-        let votes = parseInt(blocSondage.getElementsByClassName("pied-result")[0].innerHTML.trim().split(" ")[0]);
-        return { answered: answered, intitule: intitule, results: results, votes: votes };
+    } else {
+        for (let ch of choix) {
+            let btnResponse = ch.getElementsByClassName("btn-sondage-reponse")[0];
+            let response = btnResponse.textContent.trim();
+            let sondageId = btnResponse.getAttribute("data-id-sondage");
+            let responseId = btnResponse.getAttribute("data-id-reponse");
+            results.push({ response: response, sondageId: sondageId, responseId: responseId });
+        }
     }
 
-    // New structure: extract from payload
-    try {
-        let payload = getForumPayload();
-        if (payload && payload.survey && payload.survey.hasSurvey && payload.survey.data) {
-            let surveyData = payload.survey.data;
-            let intitule = surveyData.title || "";
-            let answered = surveyData.hasVoted || false;
-            let results = [];
-            if (surveyData.answers) {
-                for (let answer of surveyData.answers) {
-                    results.push({
-                        response: answer.label || "",
-                        pourcent: answer.percentage || 0,
-                        sondageId: surveyData.id,
-                        responseId: answer.id
-                    });
-                }
-            }
-            let votes = surveyData.totalVotes || 0;
-            return { answered: answered, intitule: intitule, results: results, votes: votes };
-        }
-    } catch { /* ignore */ }
-
-    return null;
+    let votes = parseInt(blocSondage.getElementsByClassName("pied-result")[0].innerHTML.trim().split(" ")[0]);
+    return { answered: answered, intitule: intitule, results: results, votes: votes };
 }
 
 function tryCatch(func) {
@@ -1596,116 +1417,19 @@ function getForum(document) {
 }
 
 function getLastPage(document) {
-    // New structure: pagination with .pagination__button--last
-    let lastPageLink = document.querySelector(".pagination__button--last");
-    if (lastPageLink) {
-        let href = lastPageLink.getAttribute("href");
-        if (href) {
-            let match = href.match(/\/forums\/\d+-\d+-\d+-(\d+)-/);
-            if (match) return parseInt(match[1]);
-        }
-    }
-    // Fallback: old structure
     let blocPages = document.getElementsByClassName("bloc-liste-num-page")[0];
-    if (blocPages) {
-        let spans = blocPages.getElementsByTagName("span");
-        let lastPage = 1;
-        for (let span of spans) {
-            let page = parseInt(span.textContent.trim());
-            if (!isNaN(page) && page > lastPage) {
-                lastPage = page;
-            }
-        }
-        return lastPage;
-    }
-
-    // New structure fallback: scan every pagination link/item for the highest page number.
-    // This handles cases where .pagination__button--last is absent (e.g. on the last page)
-    // or when JVC omits it on intermediate pages.
-    let maxPage = 1;
-    let paginationEls = document.querySelectorAll(
-        ".pagination__button, .pagination__item, .pagination__dropdownList a, .pagination__dropdownList span"
-    );
-    for (let el of paginationEls) {
-        let href = el.getAttribute && el.getAttribute("href");
-        if (href) {
-            let m = href.match(/\/forums\/\d+-\d+-\d+-(\d+)-/);
-            if (m) {
-                let n = parseInt(m[1]);
-                if (!isNaN(n) && n > maxPage) maxPage = n;
-                continue;
-            }
-        }
-        let txt = (el.textContent || "").trim();
-        if (/^\d+$/.test(txt)) {
-            let n = parseInt(txt);
-            if (!isNaN(n) && n > maxPage) maxPage = n;
+    let spans = blocPages.getElementsByTagName("span");
+    let lastPage = 1;
+    for (let span of spans) {
+        let page = parseInt(span.textContent.trim());
+        if (!isNaN(page) && page > lastPage) {
+            lastPage = page;
         }
     }
-    if (maxPage > 1) {
-        return maxPage;
-    }
-
-    // Last resort: current page is the last page (topic has only one page)
-    let current = document.querySelector(".pagination__item--current");
-    if (current) return parseInt(current.textContent.trim()) || 1;
-    return 1;
+    return lastPage;
 }
 
 function parseMessage(elem) {
-    // New JVC structure: div.messageUser#message-XXXXXXX
-    let isNewStructure = elem.classList.contains("messageUser");
-
-    if (isNewStructure) {
-        let authorElem = elem.querySelector(".messageUser__label");
-        let author = authorElem ? authorElem.textContent.trim() : "";
-
-        let blacklisted = false;
-
-        let avatarElem = elem.querySelector(".avatar__image");
-        let avatar = avatarElem ? avatarElem.getAttribute("src") : undefined;
-
-        let dateElem = elem.querySelector(".messageUser__date");
-        let date = dateElem ? dateElem.textContent.trim() : "";
-
-        let content = elem.querySelector(".messageUser__msg");
-        if (content) {
-            content.classList.add("txt-msg");
-        }
-
-        let id = parseInt(elem.id.replace("message-", ""));
-
-        let editedElem = elem.querySelector(".messageUser__dateEdit");
-        let edited = undefined;
-        if (editedElem) {
-            let msgEdited = editedElem.textContent.trim();
-            let match = msgEdited.match(/Message édité le .*? à (.*?) par/i);
-            if (match) edited = match[1];
-        }
-
-        let signalerHTML = "";
-        let signalElem = elem.querySelector('.messageUser__action[title="Faire un signalement"]');
-        if (signalElem) {
-            let jvChatSignalElem = signalElem.cloneNode(true);
-            jvChatSignalElem.classList.toggle("jvchat-picto", true);
-            jvChatSignalElem.classList.add("jvchat-signal");
-            signalerHTML = jvChatSignalElem.outerHTML;
-        }
-
-        return {
-            author: author,
-            dateString: date,
-            date: parseDate(date),
-            avatar: avatar,
-            edited: edited,
-            id: id,
-            content: content,
-            blacklisted: blacklisted,
-            signaler: signalerHTML
-        };
-    }
-
-    // Legacy JVC structure fallback
     let conteneurs = elem.getElementsByClassName("conteneur-message");
     let conteneur = conteneurs[conteneurs.length - 1];
 
@@ -1772,53 +1496,17 @@ function parseUserInfo(elem) {
 }
 
 function getPage(elem) {
-    // New structure
-    let pageActive = elem.querySelector(".pagination__item--current");
-    if (pageActive) {
-        return parseInt(pageActive.textContent.trim()) || 1;
-    }
-    // Old structure fallback
-    let pageActiveOld = elem.getElementsByClassName("page-active")[0];
+    let pageActive = elem.getElementsByClassName("page-active")[0];
     let page = 1;
-    if (pageActiveOld !== undefined) {
-        page = parseInt(pageActiveOld.textContent.trim());
+    if (pageActive !== undefined) {
+        page = parseInt(pageActive.textContent.trim());
     }
     return page;
 }
 
 function parseTopicInfo(elem) {
-    // New structure
-    let titleElem = elem.querySelector(".titleMessagesUsers__title");
-    if (!titleElem) {
-        titleElem = elem.querySelector("#bloc-title-forum");
-    }
-    let title = titleElem ? titleElem.textContent.trim() : "";
-
-    let connectedElem = elem.querySelector(".userCount__number");
-    if (!connectedElem) {
-        connectedElem = elem.getElementsByClassName("nb-connect-fofo")[0];
-    }
-    let connected = connectedElem ? parseInt(connectedElem.textContent.trim()) : 0;
-
-    // New structure fallback: read from payload (forumInfo.header.btnVal)
-    if (!connected) {
-        try {
-            let payload = getPayload(elem);
-            let panels = payload && payload.sidebar && payload.sidebar.panels;
-            if (Array.isArray(panels)) {
-                for (let panel of panels) {
-                    if (panel && panel.header && typeof panel.header.btnVal === "number") {
-                        connected = panel.header.btnVal;
-                        break;
-                    }
-                }
-            }
-            if (!connected && payload && payload.forumInfo && payload.forumInfo.header) {
-                connected = parseInt(payload.forumInfo.header.btnVal) || connected;
-            }
-        } catch (e) { /* ignore */ }
-    }
-
+    let title = elem.querySelector("#bloc-title-forum").textContent.trim();
+    let connected = parseInt(elem.getElementsByClassName("nb-connect-fofo")[0].textContent.trim());
     let lastPage = getLastPage(elem);
     let page = getPage(elem);
     return { title: title, connected: connected, lastPage: lastPage, page: page };
@@ -1833,11 +1521,10 @@ function fixMessage(elem) {
         a.innerHTML = jvcare.innerHTML;
         jvcare.outerHTML = a.outerHTML;
     }
-
-    let togglableQuotes = Array.from(elem.querySelectorAll(".messageUser__msg.txt-msg > blockquote > blockquote"));
+    let togglableQuotes = Array.from(elem.querySelectorAll(".text-enrichi-forum > blockquote > blockquote"));
     for (let togglableQuote of togglableQuotes) {
-        let toggleButton = document.createElement("button");
-        toggleButton.classList.add("message__collapsedQuote");
+        let toggleButton = document.createElement("div");
+        toggleButton.classList.add("nested-quote-toggle-box");
         togglableQuote.insertBefore(toggleButton, togglableQuote.firstChild);
         // The click event is bound in the "dontScrollOnExpand()" function
     }
@@ -1852,7 +1539,7 @@ function jvCake(cls) {
 }
 
 function detectMosaic(elem) {
-    let imagesShack = elem.querySelectorAll(".img-shack, .message__urlImg");
+    let imagesShack = elem.getElementsByClassName("img-shack");
     if (imagesShack.length < 4) {
         return;
     }
@@ -1894,7 +1581,7 @@ function detectMosaic(elem) {
 }
 
 function improveImages(elem) {
-    let imagesShack = elem.querySelectorAll(".img-shack, .message__urlImg");
+    let imagesShack = elem.getElementsByClassName("img-shack");
     for (let image of imagesShack) {
         let src = image.src;
         let parent = image.parentNode;
@@ -2042,20 +1729,9 @@ function getPanelHtml() {
 function clearPage(document) {
     document.head.insertAdjacentHTML("beforeend", CSS);
 
-    // Assign id="bloc-formulaire-forum" to .container__post if new structure
-    let formContainer = document.getElementById("bloc-formulaire-forum");
-    if (!formContainer) {
-        formContainer = document.querySelector(".container__post");
-        if (formContainer) {
-            formContainer.id = "bloc-formulaire-forum";
-        }
-    }
-
-    if (formContainer) {
-        let previsu = formContainer.querySelector(".messageEditor__containerPreview, .previsu-editor");
-        if (previsu) {
-            previsu.parentElement.removeChild(previsu);
-        }
+    let previsu = document.getElementById("bloc-formulaire-forum").getElementsByClassName("previsu-editor")[0];
+    if (previsu) {
+        previsu.parentElement.removeChild(previsu);
     }
 
     let messageTopic = getTextArea();
@@ -2065,13 +1741,7 @@ function clearPage(document) {
         messageTopic.addEventListener("keydown", tryCatch(postMessageIfEnter));
         replacePostButton(tryCatch(postJvcMessage));
     }
-
-    // New structure: #listMessages or .container__messages; old: .conteneur-messages-pagi
-    let messagesContainer = document.getElementById("listMessages")
-        || document.getElementsByClassName("conteneur-messages-pagi")[0];
-    if (messagesContainer) {
-        messagesContainer.insertAdjacentHTML("afterbegin", "<div id='jvchat-main'><hr class='jvchat-ruler'></div>");
-    }
+    document.getElementsByClassName("conteneur-messages-pagi")[0].insertAdjacentHTML("afterbegin", "<div id='jvchat-main'><hr class='jvchat-ruler'></div>");
     document.getElementById("forum-main-col").insertAdjacentHTML("afterbegin", "<div id='jvchat-alerts'><div id='jvchat-fixed-alert' class='jvchat-hide'><div class='alert-row'></div></div><div id='jvchat-turbo-warning' class='jvchat-hide'><button class='close jvchat-alert-hide' aria-hidden='true' data-dismiss='alert' type='button'>×</button><div class='alert-row'></div></div><div id='jvchat-degraded-refresh-warning' class='jvchat-hide'><div class='alert-row'></div></div></div>");
 
     document.getElementsByClassName("layout__contentMain")[0].insertAdjacentHTML("afterbegin", getPanelHtml());
@@ -2079,35 +1749,13 @@ function clearPage(document) {
 
     document.getElementById("page-messages-forum").classList.add("jvchat-root");
 
-    // Hide the sticky toolbar (Répondre/Nouveau sujet/Liste/Actualiser)
-    let stickyToolbar = document.getElementById("js-list-message-tools-actions");
-    if (stickyToolbar) {
-        stickyToolbar.classList.add("jvchat-hide");
-    }
+    document.getElementById("bloc-formulaire-forum").classList.add("jvchat-reduced");
+    document.getElementById("bloc-formulaire-forum").classList.add("jvchat-hide");
 
-    // Hide the right sidebar (Sous forums / Infos / Favoris)
-    let contentAside = document.querySelector(".layout__contentAside");
-    if (contentAside) {
-        contentAside.classList.add("jvchat-hide");
-    }
-
-    // Hide ads inside forum-main-col
-    let adsInForum = document.querySelectorAll("#forum-main-col ins[data-ad-position], #forum-main-col .nosticky");
-    for (let ad of adsInForum) {
-        ad.classList.add("jvchat-hide");
-    }
-
-    if (formContainer) {
-        formContainer.classList.add("jvchat-reduced");
-        formContainer.classList.add("jvchat-hide");
-    }
-
-    let toolbar = formContainer ? (formContainer.querySelector(".buttonsEditor, .jv-editor-toolbar")) : null;
-    /*
+    let toolbar = document.getElementById("bloc-formulaire-forum").getElementsByClassName("jv-editor-toolbar")[0];
     if (toolbar) {
         toolbar.classList.add("jvchat-hide");
     }
-    */
 
     document.getElementById("jvchat-main").addEventListener("click", tryCatch(dontScrollOnExpand));
 
@@ -2328,20 +1976,8 @@ function getMessageIdFromUrl(messageUrl) {
 
 function getTopicId() {
     const blocFormulaireElem = document.querySelector('#bloc-formulaire-forum');
-    if (blocFormulaireElem) {
-        let topicId = blocFormulaireElem.getAttribute('data-topic-id');
-        if (topicId) return topicId;
-    }
-    // Fallback: extract from payload
-    try {
-        let payload = getForumPayload();
-        if (payload && payload.topicId) return String(payload.topicId);
-    } catch { /* ignore */ }
-    // Fallback: extract from URL
-    const urlRegex = /\/forums\/\d+-\d+-(\d+)-/;
-    const match = window.location.pathname.match(urlRegex);
-    if (match) return match[1];
-    return undefined;
+    if (!blocFormulaireElem) return undefined;
+    return blocFormulaireElem.getAttribute('data-topic-id');
 }
 
 function getForumId() {
@@ -2354,11 +1990,11 @@ function getForumId() {
 }
 
 function getForumPayload() {
-    return JSON.parse(atob(unsafeWindow.jvc.forumsAppPayload));
+    return JSON.parse(atob(window.jvc.forumsAppPayload));
 }
 
 function getTextArea() {
-    return document.getElementById("message_reponse") || document.getElementById("message_topic");
+    return document.getElementById("message_topic");
 }
 
 function setTextAreaValue(textarea, value) {
@@ -2505,8 +2141,7 @@ async function requestMessageDataForEdit(messageId, messageBloc) {
         return;
     }
 
-    // New JVC endpoint (2026): GET form values as JSON
-    const url = `https://www.jeuxvideo.com/forums/message/edit/form-values?id_message=${messageId}&ajax_hash=${ajaxHash}`;
+    const url = `https://www.jeuxvideo.com/forums/ajax_edit_message.php?id_message=${messageId}&ajax_hash=${ajaxHash}&action=get`;
     const originalContentDiv = messageBloc.querySelector(".jvchat-content");
 
     originalContentDiv.classList.add("jvchat-hide");
@@ -2531,22 +2166,7 @@ async function requestMessageDataForEdit(messageId, messageBloc) {
             messageBloc.originalHTML = originalContentDiv.innerHTML;
         }
 
-        // The new endpoint returns all fields at the top level. Extract the
-        // JVCode (message body) and every `fs_*` field (form-session anti-CSRF
-        // tokens) which must be re-sent verbatim in the POST body.
-        const jvcode = data.jvcode || data.text || data.message || "";
-        const formSession = {};
-        for (const key in data) {
-            if (key.startsWith("fs_")) {
-                formSession[key] = data[key];
-            }
-        }
-        // Legacy fallback: some responses nest them under `edit_form_session`
-        if (data.edit_form_session && typeof data.edit_form_session === "object") {
-            Object.assign(formSession, data.edit_form_session);
-        }
-
-        renderEditInterface(messageBloc, messageId, jvcode, formSession, ajaxHash);
+        renderEditInterface(messageBloc, messageId, data.jvcode, data.edit_form_session, ajaxHash);
 
     } catch (error) {
         displayError(`Fetch error : ${error.message}`);
@@ -2610,14 +2230,12 @@ async function submitEditedMessage(messageBloc, messageId, newText, formSession,
     formData.append("forumId", forumId);
     formData.append("group", "1");
 
-    // Append every fs_* form-session token returned by the GET form-values call
     for (const key in formSession) {
         if (Object.hasOwnProperty.call(formSession, key)) {
             formData.append(key, formSession[key]);
         }
     }
     formData.append("ajax_hash", ajaxHash);
-    formData.append("resetFormAfterSuccess", "false");
 
     editionDiv.classList.add("jvchat-disabled-form");
 
@@ -2678,11 +2296,9 @@ function requestDelete(bloc) {
 
     function onSuccess(res) {
         contentClasses.remove("disabled-content");
-        // Legacy response: { erreur: [...] } / New response: { success: true } or { errors: [...] }
-        const errors = (res && (res.erreur || res.errors)) || [];
-        if (Array.isArray(errors) && errors.length > 0) {
-            for (let err of errors) {
-                addAlertbox("danger", typeof err === "string" ? err : (err.message || JSON.stringify(err)));
+        if (res.erreur.length > 0) {
+            for (let err of res.erreur) {
+                addAlertbox("danger", err);
             }
             return;
         }
@@ -2719,9 +2335,9 @@ function requestDelete(bloc) {
     }
 
 
-    // New JVC endpoint (2026): POST with query params, no body.
-    let url = `https://www.jeuxvideo.com/forums/message/delete?ids=${id}&type=delete&ajax_hash=${encodeURIComponent(freshDeletionHash)}`;
-    request("POST", url, onSuccess, onError, onTimeout, null, true, 5000, false);
+    let url = `https://www.jeuxvideo.com/forums/modal_del_message.php`;
+    let deleteData = { "type": "delete", "ajax_hash": freshDeletionHash, "tab_message[]": id };
+    request("POST", url, onSuccess, onError, onTimeout, makeFormData(deleteData), true, 5000, false);
 }
 
 function countLines(text) {
@@ -2778,11 +2394,9 @@ function makeFormData(dict) {
 }
 
 function getMessages(document) {
-    // New structure: div.messageUser#message-XXXXXXX
-    let blocMessages = document.querySelectorAll(".messageUser.js-hybrid-component, .bloc-message-forum");
+    let blocMessages = document.getElementsByClassName("bloc-message-forum");
     let messages = [];
     for (let bloc of blocMessages) {
-        if (bloc.children.length === 0) continue; //Bloc blacklist No DOM Fellback crash
         messages.push(parseMessage(bloc));
     }
     return messages;
@@ -2790,21 +2404,14 @@ function getMessages(document) {
 
 function findDeletedMessages(res, requestTimestamp) {
     let page = getPage(res);
-    let blocMessages = res.querySelectorAll(".messageUser.js-hybrid-component, .bloc-message-forum");
+    let blocMessages = res.getElementsByClassName("bloc-message-forum");
 
     let newIds = []
     let newDates = [];
 
     for (let bloc of blocMessages) {
-        if (bloc.children.length === 0) continue; //Bloc blacklist No DOM Fellback crash
-        let id;
-        if (bloc.classList.contains("messageUser")) {
-            id = parseInt(bloc.id.replace("message-", ""));
-        } else {
-            id = parseInt(bloc.getAttribute("data-id"));
-        }
-        let dateElem = bloc.querySelector(".messageUser__date, .bloc-date-msg");
-        let date = dateElem ? dateElem.textContent.trim() : "";
+        let id = parseInt(bloc.getAttribute("data-id"));
+        let date = bloc.getElementsByClassName("bloc-date-msg")[0].textContent.trim();
         newIds.push(id);
         newDates.push(date);
     }
@@ -2965,159 +2572,24 @@ function parseDate(string) {
     return new Date(parseInt(year), monthIndex, parseInt(day), parseInt(hour), parseInt(minute), parseInt(second));
 }
 
-function reverseMessage(node, isInit, isUl) {
-    let quote = "";
-    let prevIsP = false;
-    let startsWithSpoil = false;
-
-    for (let child of node.childNodes) {
-        let name = child.nodeName;
-
-        switch (name) {
-            case "P": {
-                quote += reverseMessage(child) + "\n\n";
-                break;
-            }
-            case "STRONG": {
-                quote += "'''" + reverseMessage(child) + "'''";
-                break;
-            }
-            case "U": {
-                quote += "<u>" + reverseMessage(child) + "</u>";
-                break;
-            }
-            case "S": {
-                quote += "<s>" + reverseMessage(child) + "</s>";
-                break;
-            }
-            case "EM": {
-                quote += "''" + reverseMessage(child) + "''";
-                break;
-            }
-            case "BR": {
-                quote += "\n";
-                break;
-            }
-            case "UL": {
-                quote += reverseMessage(child, false, true) + "\n\n";
-                break;
-            }
-            case "OL": {
-                quote += reverseMessage(child, false, false) + "\n\n";
-                break;
-            }
-            case "LI": {
-                if (isUl === true) {
-                    quote += "* " + reverseMessage(child) + "\n";
-                } else {
-                    quote += "# " + reverseMessage(child) + "\n";
-                }
-                break;
-            }
-            case "DIV": {
-                let classList = child.classList;
-                if (classList.contains("message__spoil")) {
-                    if (quote === "") {
-                        startsWithSpoil = true;
-                    }
-                    quote += "<spoil>" + reverseMessage(child) + "</spoil>\n\n"
-                } else if (classList.contains("message__spoilContent")) {
-                    quote += reverseMessage(child);
-                }
-                break;
-            }
-            case "SPAN": {
-                let classList = child.classList;
-                if (classList.contains("message__spoil")) {
-                    quote += "<spoil>" + reverseMessage(child) + "</spoil>";
-                } else if (classList.contains("message__spoilContent")) {
-                    quote += reverseMessage(child);
-                }
-                break;
-            }
-            case "LABEL": {
-                break;
-            }
-            case "INPUT": {
-                break;
-            }
-            case "IMG": {
-                quote += child.alt;
-                break;
-            }
-            case "A": {
-                if (child.href) {
-                    quote += child.href;
-                } else {
-                    quote += reverseMessage(child);
-                }
-                break;
-            }
-            case "PRE": {
-                quote += reverseMessage(child) + "\n\n";
-                break;
-            }
-            case "CODE": {
-                quote += "<code>" + child.textContent + "</code>";
-                break;
-            }
-            case "BLOCKQUOTE": {
-                if (prevIsP) {
-                    quote = quote.trimEnd() + "\n" + reverseMessage(child).replace(/^/gm, '> ') + "\n\n";
-                } else {
-                    quote += reverseMessage(child).replace(/^/gm, '> ') + "\n\n";
-                }
-
-                break;
-            }
-            case "#text": {
-                // The "isInit" check is to prevent the empty text surroudning message
-                // However, it may happen that the root node contains valid text child, so it need to be added somehow
-                // For some reason, an "new line" may be missing in this case, so just add it
-                if (!isInit || child.textContent.trim() !== "") {
-                    quote += child.textContent;
-                    if (isInit && !quote.endsWith("\n")) {
-                        quote += "\n";
-                    }
-                }
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-
-        if (name == "P") {
-            prevIsP = true;
-        } else {
-            prevIsP = false;
-        }
-    }
-
-    quote = quote.replace(/(\n){3,}/g, '\n\n');
-
-    if (startsWithSpoil && isInit) {
-        quote = "\n" + quote.trimEnd();
-    } else {
-        quote = quote.trim();
-    }
-
-    if (isInit) {
-        quote = quote.replace(/^/gm, '> ');
-    }
-
-    return quote;
-}
-
 function buildQuoteEvent(messageId) {
     const message = document.querySelector(`.jvchat-message[jvchat-id='${messageId}']`);
     const quoteButton = message.querySelector('.jvchat-quote');
     const author = message.querySelector('.jvchat-author').textContent.trim();
     const date = message.querySelector('.jvchat-date').getAttribute('to-quote');
-    quoteButton.addEventListener('click', () => {
-        let header = `> Le ${date} ${author} a écrit :\n`;
-        let quoted = reverseMessage(message.querySelector(".txt-msg"), true);
-        let content = header + quoted + '\n\n';
+    quoteButton.addEventListener('click', async () => {
+        const url = `https://www.jeuxvideo.com/forums/ajax_citation.php?id_message=${messageId}&ajax_hash=${freshHash}`;
+        const response = await fetch(url);
+        const result = await response.json();
+        let quoteText = result.txt;
+        if (!quoteText?.length) {
+            quoteText = message.querySelector('.txt-msg')?.innerText.trim();
+        }
+
+        let content = `\n> Le ${date} ${author} a écrit :\n> `;
+        content += quoteText.split('\n').join('\n> ');
+        content = content.replace(/^[\r\n]+|[\r\n]+$/g, '');
+        content += '\n\n';
 
         let textarea = getTextArea();
         if (isReduced) {
@@ -3519,16 +2991,13 @@ function triggerJVChat() {
     manageTextareaSimpleHeight();
     autoHideTurnstileErrorMessages();
 
-    let activationEvent = new CustomEvent('jvchat:activation');
-    dispatchEvent(activationEvent);
+    let event = new CustomEvent('jvchat:activation');
+    dispatchEvent(event);
 
     let page = topic.lastPage > 1 ? topic.lastPage - 1 : topic.lastPage;
     updateMessages(page, true);
 
     setInterval(tryCatch(checkEdited), checkEditedInterval);
-
-    let activatedEvent = new CustomEvent('jvchat:activated');
-    dispatchEvent(activatedEvent);
 }
 
 function refreshNoLongerDegraded() {
@@ -3653,9 +3122,9 @@ function checkEdited() {
 
     function onSuccess(res) {
         let newMessages = [];
-        let edited = res.querySelectorAll(".messageUser__dateEdit, .info-edition-msg");
+        let edited = res.getElementsByClassName("info-edition-msg");
         for (let msg of edited) {
-            let bloc = msg.closest(".messageUser, .bloc-message-forum");
+            let bloc = msg.closest(".bloc-message-forum");
             newMessages.push(parseMessage(bloc));
         }
         addMessages(newMessages, true, timestamp, false);
@@ -3927,11 +3396,9 @@ function removeDegradedRefreshWarning() {
 
 function makeJVChatButton() {
     let cls = 'btn-jvchat';
-    // New structure: match buttonsNavbar__button style with highlighted variant
-    let btn = `<span class="buttonsNavbar__space"></span><button class="buttonsNavbar__button buttonsNavbar__button--highlighted ${cls}" type="button"><i class="buttonsNavbar__icon icon-comments"></i><div class="buttonsNavbar__label">JVChat</div></button>`;
-    // Old structure fallback
-    let btnOld = `<button class="btn btn-actu-new-list-forum ${cls}">JVChat</button>`;
-    return { newBtn: btn, oldBtn: btnOld };
+    let text = 'JVChat';
+    let btn = `<button class="btn btn-actu-new-list-forum ${cls}">${text}</button>`;
+    return btn;
 }
 
 function addJVChatButton(document) {
@@ -3959,26 +3426,12 @@ function addJVChatButton(document) {
         min-width: 5.25rem;
         margin-left: 0.3125rem;
     }
-
-    .btn-jvchat.buttonsNavbar__button {
-        font-weight: bold;
-    }
     </style>`
     document.head.insertAdjacentHTML("beforeend", css);
-    let jvchatButtons = makeJVChatButton();
-
-    // New structure: insert at the end of .buttonsNavbar (after "Actualiser")
-    let buttonsNavbar = document.querySelectorAll(".buttonsNavbar");
-    for (let bloc of buttonsNavbar) {
-        bloc.insertAdjacentHTML('beforeend', jvchatButtons.newBtn);
-    }
-
-    // Old structure fallback
-    if (buttonsNavbar.length === 0) {
-        let blocPreRight = document.getElementsByClassName("bloc-pre-right");
-        for (let bloc of blocPreRight) {
-            bloc.insertAdjacentHTML('afterbegin', jvchatButtons.oldBtn);
-        }
+    let blocPreRight = document.getElementsByClassName("bloc-pre-right");
+    let jvchatButton = makeJVChatButton();
+    for (let bloc of blocPreRight) {
+        bloc.insertAdjacentHTML('afterbegin', jvchatButton);
     }
 }
 
@@ -4096,16 +3549,18 @@ function dontScrollOnExpand(event) {
 
     let classes = target.classList;
 
-    if (classes.contains("message__collapsedQuote")) {
+    if (classes.contains("nested-quote-toggle-box")) {
         let isDown = isScrollDown();
-        let blockQuote = target.closest(".message__blockquote");
-        blockQuote.classList.toggle("message__blockquote--visible");
+        let blockQuote = target.closest(".blockquote-jv");
+        let visible = blockQuote.getAttribute("data-visible");
+        let value = visible === "1" ? "" : "1";
+        blockQuote.setAttribute('data-visible', value);
         if (isDown) {
             setScrollDown();
         }
     } else if (classes.contains("txt-spoil") || classes.contains("aff-spoil") || classes.contains("masq-spoil")) {
         event.preventDefault();
-        let check = target.closest(".message__spoil").getElementsByClassName("open-spoil")[0];
+        let check = target.closest(".bloc-spoil-jv").getElementsByClassName("open-spoil")[0];
         let isDown = isScrollDown();
         check.checked = !check.checked;
         if (isDown) {
@@ -4143,33 +3598,8 @@ function setScrollDown() {
 }
 
 function main() {
-    function init() {
-        addJVChatButton(document);
-        bindJVChatButton(document);
-    }
-
-    // If buttonsNavbar already exists, init immediately
-    if (document.querySelector(".buttonsNavbar")) {
-        init();
-        return;
-    }
-
-    // Wait for React to render the buttonsNavbar
-    let observer = new MutationObserver(function (mutations, obs) {
-        if (document.querySelector(".buttonsNavbar")) {
-            obs.disconnect();
-            init();
-        }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    // Fallback timeout: if buttonsNavbar never appears, try old structure
-    setTimeout(function () {
-        observer.disconnect();
-        if (!document.querySelector(".btn-jvchat")) {
-            init();
-        }
-    }, 5000);
+    addJVChatButton(document);
+    bindJVChatButton(document);
 }
 
 main();

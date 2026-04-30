@@ -4,7 +4,7 @@
 // @author       Blaff & Rand0max
 // @namespace    JVChatPremium
 // @license      MIT
-// @version      0.2.3
+// @version      0.2.2
 // @match        http://*.jeuxvideo.com/forums/42-*
 // @match        https://*.jeuxvideo.com/forums/42-*
 // @match        http://*.jeuxvideo.com/forums/1-*
@@ -73,7 +73,6 @@ header.jv-header-menu,
 .option-previsu,
 .ads,
 .sondage-fofo,
-#forums-topic-survey,
 #dfp_pulse,
 #didomi-host,
 .sideDfp,
@@ -2782,7 +2781,6 @@ function getMessages(document) {
     let blocMessages = document.querySelectorAll(".messageUser.js-hybrid-component, .bloc-message-forum");
     let messages = [];
     for (let bloc of blocMessages) {
-        if (bloc.children.length === 0) continue; //Bloc blacklist No DOM Fellback crash
         messages.push(parseMessage(bloc));
     }
     return messages;
@@ -2796,7 +2794,6 @@ function findDeletedMessages(res, requestTimestamp) {
     let newDates = [];
 
     for (let bloc of blocMessages) {
-        if (bloc.children.length === 0) continue; //Bloc blacklist No DOM Fellback crash
         let id;
         if (bloc.classList.contains("messageUser")) {
             id = parseInt(bloc.id.replace("message-", ""));

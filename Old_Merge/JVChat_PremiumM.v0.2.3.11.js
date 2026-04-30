@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         JVChat Premium FORK by Rand0max
-// @description  Outil de discussion instantanée pour les forums de Jeuxvideo.com
+// @description  Outil de discussion (debug les crashs et citations par Shiho Lantea / en attendant le debug de Rando)
 // @author       Blaff & Rand0max
 // @namespace    JVChatPremium
 // @license      MIT
-// @version      0.2.3
+// @version      0.2.3.11
 // @match        http://*.jeuxvideo.com/forums/42-*
 // @match        https://*.jeuxvideo.com/forums/42-*
 // @match        http://*.jeuxvideo.com/forums/1-*
@@ -86,6 +86,7 @@ header.jv-header-menu,
 .gameHeaderBanner,
 .gameHeaderSubNav,
 .forumAnchorWrapper,
+.lockInfo,
 .bloc-sondage::before,
 .layout__contextTop,
 .layout__breadcrumb,
@@ -775,6 +776,10 @@ hr.jvchat-ruler:first-of-type {
   color: #8b8b8b;
 }
 
+.jvchat-content blockquote.message__blockquote {
+  padding-top: 0 !important;
+}
+
 .message__collapsedQuote::before {
    position: relative;
 }
@@ -824,7 +829,8 @@ hr.jvchat-ruler:first-of-type {
 }
 
 .jvchat-content .img-stickers,
-.jvchat-content .message__urlImgSticker {
+.jvchat-content .message__urlImgSticker,
+.jvchat-content .message__sticker {
   max-height: 39px;
   min-height: 39px;
   width: auto;
@@ -1183,7 +1189,7 @@ hr.jvchat-ruler:first-of-type {
   color: #cbcdce !important;
 }
 
-.jvchat-night-mode .bloc-spoil-jv .contenu-spoil {
+.jvchat-night-mode .message__spoil .message__spoilContent {
   background-color: #2d2d2d !important;
   border-color: #202020 !important;
   color: #dcddde !important;
@@ -1432,9 +1438,9 @@ function getTopicLocked(elem) {
     }
     // New structure: check payload
     try {
-        let payload = getForumPayload();
+        let payload = freshPayload || getForumPayload();  //FreshPayload for actualize on polling
         if (payload && payload.forum && payload.forum.isForumReadOnly) {
-            let reason = payload.forum.lockReason || "raison inconnue";
+            let reason = payload.forum.lockReason?.post?.message || "raison inconnue";
             return `Le topic a été verrouillé pour la raison suivante : "${reason}"`;
         }
     } catch { /* ignore */ }
@@ -1506,23 +1512,23 @@ function parseSondage(elem) {
 
     // New structure: extract from payload
     try {
-        let payload = getForumPayload();
+        let payload = freshPayload || getForumPayload(); //FreshPayload for actualize on polling
         if (payload && payload.survey && payload.survey.hasSurvey && payload.survey.data) {
             let surveyData = payload.survey.data;
             let intitule = surveyData.title || "";
-            let answered = surveyData.hasVoted || false;
+            let answered = surveyData.hasVoted || surveyData.isClosed || false;
             let results = [];
-            if (surveyData.answers) {
-                for (let answer of surveyData.answers) {
+            if (surveyData.responses) {
+                for (let answer of surveyData.responses) {
                     results.push({
-                        response: answer.label || "",
+                        response: answer.text || "",
                         pourcent: answer.percentage || 0,
                         sondageId: surveyData.id,
                         responseId: answer.id
                     });
                 }
             }
-            let votes = surveyData.totalVotes || 0;
+            let votes = surveyData.totalResponses || 0;
             return { answered: answered, intitule: intitule, results: results, votes: votes };
         }
     } catch { /* ignore */ }
@@ -1860,6 +1866,7 @@ function detectMosaic(elem) {
     let regex1 = /^.+\/(?:[0-9]+-)+[0-9]{1,2}-([a-z0-9]+)\.\w+$/i;
     let regex2 = /^.+\/(?:[0-9]+-)+row-[0-9]+-col-[0-9](?:-[0-9]+)?\.\w+$/i;
     for (let image of imagesShack) {
+        if (!image.src) continue; //Fell Back Span
         let match1 = image.src.match(regex1);
         if (match1) {
             let [_, identifier] = match1;
@@ -1896,6 +1903,16 @@ function detectMosaic(elem) {
 function improveImages(elem) {
     let imagesShack = elem.querySelectorAll(".img-shack, .message__urlImg");
     for (let image of imagesShack) {
+        if (!image.src) { //CSS Image Span => transform to image or cancel
+            const largeImg = image.dataset.srcBackground;
+            if (!largeImg) continue;
+            const tagImg = document.createElement('img');
+            tagImg.src = largeImg;
+            tagImg.className = image.className;
+            tagImg.style.paddingBottom = '0';
+            image.replaceWith(tagImg);
+            image = tagImg;
+        }
         let src = image.src;
         let parent = image.parentNode;
         let extension = parent.href.split(".").pop();
@@ -3262,6 +3279,7 @@ function submitSondageAnswer(event) {
         let reponseNum = parseInt(target.getAttribute("sondage-reponse-num"));
         let sondageId = sondageChoices[reponseNum]["sondageId"];
         let reponseId = sondageChoices[reponseNum]["responseId"];
+        /* Legacy JVC
         let topicId = urlToFetch["ids"].split("-")[2];
         let url = `https://www.jeuxvideo.com/forums/ajax_topic_sondage_vote.php?id_topic=${topicId}&id_sondage_reponse=${reponseId}&id_sondage=${sondageId}&ajax_hash=${freshHash}`;
 
@@ -3293,6 +3311,52 @@ function submitSondageAnswer(event) {
         }
 
         request("POST", url, onSuccess, onError, onTimeout, undefined, true, 5000, false);
+        END LEGACY */
+
+        // New structure
+        let topicId = getTopicId();
+        let payload = freshPayload || getForumPayload();
+        let surveyAjaxHash = payload?.survey?.ajaxToken;
+        let url = `https://www.jeuxvideo.com/forums/survey/vote`;
+        let formData = {};
+        formData.ajax_hash = surveyAjaxHash;
+        formData.id_topic = topicId;
+        formData.id_sondage = sondageId;
+        formData.id_sondage_reponse = reponseId;
+
+
+        function onSuccess(res) {
+            if (handleApiResponseError(res, "vote sondage")) return;
+            
+            let surveyData = res.survey?.data;
+            if (!surveyData) {
+                addAlertbox("warning", "Erreur lors de la récupération du sondage");
+                return;
+            }
+
+            setSondage({
+                answered: surveyData.hasVoted,
+                intitule: surveyData.title,
+                votes: surveyData.totalResponses,
+                results: surveyData.responses.map(r => ({
+                    response: r.text,
+                    pourcent: r.percentage,
+                    sondageId: surveyData.id,
+                    responseId: r.id
+                }))
+            });
+        }
+
+        function onError(err, _) {
+            addAlertbox("danger", err);
+        }
+
+        function onTimeout(err) {
+            addAlertbox("warning", err);
+        }
+
+        //NEW END POINT IN FORM DATA
+        request("POST", url, onSuccess, onError, onTimeout, makeFormData(formData), true, 5000, false);
     }
 }
 
@@ -3373,7 +3437,7 @@ function setUser(document, user) {
     if ((userConnected === undefined && isConnected) || (userConnected !== undefined && isConnected !== userConnected)) {
         document.getElementById("jvchat-profil").classList.toggle("jvchat-hide");
         let isDown = isScrollDown();
-        document.getElementById("bloc-formulaire-forum").classList.toggle("jvchat-hide");
+        document.getElementById("bloc-formulaire-forum")?.classList.toggle("jvchat-hide");
         if (isDown) {
             setScrollDown();
         }
@@ -3431,7 +3495,7 @@ function hideCloudfareInfo() {
     }
     const observer = new MutationObserver(() => {
         let cfInfo = document.querySelector(".js-captcha-logo");
-        if (cfInfo) hideElement(cfInfo.parentElement);
+        if (cfInfo) hideElement(cfInfo.parentElement.parentElement);
     });
     observer.observe(document.body, {
         childList: true,
@@ -4103,9 +4167,9 @@ function dontScrollOnExpand(event) {
         if (isDown) {
             setScrollDown();
         }
-    } else if (classes.contains("txt-spoil") || classes.contains("aff-spoil") || classes.contains("masq-spoil")) {
+    } else if (classes.contains("message__spoilLabel") || classes.contains("message__spoilDisplay") || classes.contains("message__spoilMask")) {
         event.preventDefault();
-        let check = target.closest(".message__spoil").getElementsByClassName("open-spoil")[0];
+        let check = target.closest(".message__spoil").getElementsByClassName("message__openSpoil")[0];
         let isDown = isScrollDown();
         check.checked = !check.checked;
         if (isDown) {
