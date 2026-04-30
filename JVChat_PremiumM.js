@@ -9,8 +9,6 @@
 // @match        https://*.jeuxvideo.com/forums/42-*
 // @match        http://*.jeuxvideo.com/forums/1-*
 // @match        https://*.jeuxvideo.com/forums/1-*
-
-
 // @run-at       document-end
 // ==/UserScript==
 
