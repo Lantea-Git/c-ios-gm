@@ -43,9 +43,9 @@ js_content = re.sub(r"^//\s*@resource.*$\n?", "", js_content, flags=re.MULTILINE
 #js_content = re.sub(r"^//\s*==/UserScript==", "// @grant        unsafeWindow\n// ==/UserScript==", js_content, flags=re.MULTILINE)
 
 
-# === 7) Corriger URLs entete download
-js_content = re.sub(r"^//\s*@downloadURL.*$", "", js_content, flags=re.MULTILINE)
-js_content = re.sub(r"^//\s*@updateURL.*$", "", js_content, flags=re.MULTILINE)
+# === 7) Enlever URLs entete download
+js_content = re.sub(r"^//\s*@downloadURL.*$\n?", "", js_content, flags=re.MULTILINE)
+js_content = re.sub(r"^//\s*@updateURL.*$\n?", "", js_content, flags=re.MULTILINE)
 
 
 # === 8) Supprimer les appels GM et remplacer par le css integre
