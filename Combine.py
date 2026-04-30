@@ -29,7 +29,7 @@ def convert_css_unicode_to_js_innerhtml(css_text):
     return re.sub(r'\\([0-9A-Fa-f]{1,6})', replacer, css_text)
 
 css_content = convert_css_unicode_to_js_innerhtml(css_content)
-css_content = css_content.replace('`', '\\`')  # Échapper les backticks pour le template literal JS
+css_content = css_content.replace('`', '')  # Virer backticks pour le template literal JS
 
 # === 4) Créer le bloc CSS
 css_block = f"let CSS = `<style type=\"text/css\" id=\"jvchat-css\">\n{css_content}\n</style>`;\n"
@@ -47,18 +47,48 @@ js_content = re.sub(r"^//\s*@resource.*$\n?", "", js_content, flags=re.MULTILINE
 js_content = re.sub(r"^//\s*@downloadURL.*$\n?", "", js_content, flags=re.MULTILINE)
 js_content = re.sub(r"^//\s*@updateURL.*$\n?", "", js_content, flags=re.MULTILINE)
 
+# === 7B) BOUNDARY TO FORMDATA GreasyMonkey
+old = """    let fs_custom_input = Array.from(freshForm.elements).find(e => /^fs_[a-f0-9]{40}$/i.test(e.name));
+    if (fs_custom_input && !formData.has(fs_custom_input.name)) {
+        formData.set(fs_custom_input.name, fs_custom_input.value);
+    }
+    if (!formData.has("ajax_hash")) {
+        let ajax_hash = freshForm.querySelector('input[name="ajax_hash"]')?.value || freshHash;
+        formData.set("ajax_hash", ajax_hash);
+    }
 
-# === 8) Supprimer les appels GM et remplacer par le css integre
-#js_content = re.sub(r"^.*GM_getResourceText.*$\n?", "", js_content, flags=re.MULTILINE)
-#js_content = js_content.replace("GM_addStyle(jvchatCSS);", 'document.head.insertAdjacentHTML("beforeend", CSS);')
+    const boundary = "----geckoformboundary" + Math.random().toString(16).slice(2);
+    let body = "";
+    for (let [key, value] of formData.entries()) {
+        body += `--${boundary}\\r\\nContent-Disposition: form-data; name="${key}"\\r\\n\\r\\n${value}\\r\\n`;
+    }
+    body += `--${boundary}--\\r\\n`;"""
+js_content = js_content.replace(old, '    formData.set("ajax_hash", forumPayload.ajaxToken);')
 
-# === 8) Supprimer les appels GM et remplacer par le css integre
-js_content = re.sub(
-    r"(function clearPage\(document\) \{[\s\S]*?)try \{[\s\S]*?GM_getResourceText\('JVCHAT_CSS'\)[\s\S]*?\} catch \(e\) \{[^{}]*\}",
-    r'\1document.head.insertAdjacentHTML("beforeend", CSS);',
-    js_content,
-    flags=re.DOTALL
-)
+old2 = """                referrer: document.URL,
+                body: body,
+                mode: "cors\""""
+js_content = js_content.replace('                    "Content-Type": `multipart/form-data; boundary=${boundary}`,\n', "")
+
+js_content = js_content.replace(old2, """                referrer: document.URL,
+                body: formData,
+                mode: "cors\"""")
+
+# === 8) STYLE Supprimer LES APPELS GM et remplacer par le CSS INTEGRE
+old = """
+    try {
+        const jvchatCSS = GM_getResourceText('JVCHAT_CSS');
+        if (jvchatCSS && typeof jvchatCSS === 'string' && jvchatCSS.length > 0) {
+            GM_addStyle(jvchatCSS);
+        } else {
+            console.warn('[JVChat] @resource JVCHAT_CSS empty or unavailable.');
+        }
+    } catch (e) {
+        console.warn('[JVChat] GM_getResourceText failed:', e);
+    }
+"""
+js_content = js_content.replace(old, '\n    document.head.insertAdjacentHTML("beforeend", CSS);\n')
+
 
 # === 9) Injecter le CSS avant let freshHash
 js_content = js_content.replace("let freshHash = undefined;", css_block + "\nlet freshHash = undefined;")
