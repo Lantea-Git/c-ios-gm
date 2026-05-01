@@ -32,6 +32,11 @@ jobs:
       - name: Supprimer `.git` pour éviter sous-module
         run: rm -rf external_repo/.git
 
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
       - name: Lancer le script Python Combine.py
         id: combine
         run: python3 Combine.py
